@@ -1,0 +1,20 @@
+{
+    "name": "somoza/oauth2-sign2pay",
+    "description": "Sign2Pay Provider for The PHP League's OAuth2 library",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gabriel Somoza",
+            "email": "gabriel@somoza.me"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Somoza\\OAuth2\\Client\\": "src"
+        }
+    },
+    "require": {
+        "league/oauth2-client": "^1.2"
+    }
+}
