@@ -14,7 +14,18 @@
             "Somoza\\OAuth2\\Client\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Somoza\\OAuth2Test\\Client\\": "test/unit"
+        }
+    },
     "require": {
         "league/oauth2-client": "^1.2"
+    },
+    "require-dev": {
+        "monolog/monolog": "^1.17",
+        "slim/slim": "^3.1",
+        "mockery/mockery": "^0.9.4",
+        "phpunit/phpunit": "*"
     }
 }

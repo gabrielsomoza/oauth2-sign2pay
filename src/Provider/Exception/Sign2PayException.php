@@ -19,21 +19,48 @@
 
 namespace Somoza\OAuth2\Client\Provider\Exception;
 
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use Psr\Http\Message\ResponseInterface;
+
 /**
  * Class Sign2PayException
  * @author Gabriel Somoza <gabriel.somoza@cu.be>
  */
-class Sign2PayException extends \Exception
+final class Sign2PayException extends IdentityProviderException
 {
+    /** @var ResponseInterface */
+    private $responseObject;
+
     /**
-     * fromData
+     * Sign2PayException constructor.
+     * @param ResponseInterface $response
+     * @param int $message
+     * @param array $data
+     */
+    public function __construct(ResponseInterface $response, $message, array $data)
+    {
+        $this->responseObject = $response;
+        parent::__construct((string) $message, (int) $response->getStatusCode(), $data);
+    }
+
+    /**
+     * fromResponse
+     * @param ResponseInterface $response
      * @param $data
      * @return static
      */
-    public static function fromData($data)
+    public static function fromResponse(ResponseInterface $response, array $data = [])
     {
-        $code = $data['error']['code'];
-        $message = $code . ': ' . $data['error']['description'];
-        return new static($message, $code);
+        $title = !empty($data['error']) ? $data['error'] : '';
+        $description = !empty($data['error_description']) ? ': ' . $data['error_description'] : '';
+        return new static($response, $title . $description, $data);
+    }
+
+    /**
+     * @return ResponseInterface
+     */
+    public function getResponseObject()
+    {
+        return $this->responseObject;
     }
 }

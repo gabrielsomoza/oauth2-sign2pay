@@ -20,7 +20,6 @@
 namespace Somoza\OAuth2\Client\Provider;
 
 use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use League\OAuth2\Client\Token\AccessToken;
 use Psr\Http\Message\ResponseInterface;
@@ -32,6 +31,13 @@ use Somoza\OAuth2\Client\Provider\Exception\Sign2PayException;
  */
 final class Sign2Pay extends AbstractProvider
 {
+    /**
+     * Sign2Pay Payment scope
+     *
+     * @const string
+     */
+    const SCOPE_PAYMENT = 'payment';
+
     /**
      * Sign2Pay base URL.
      *
@@ -57,7 +63,8 @@ final class Sign2Pay extends AbstractProvider
      */
     public function getBaseAccessTokenUrl(array $params)
     {
-        return $this->getBaseSign2PayUrl() . '/oauth/token';
+        $queryParams = !empty($params) ? '?' . http_build_query($params) : '';
+        return $this->getBaseSign2PayUrl() . '/oauth/token' . $queryParams;
     }
 
     /**
@@ -72,6 +79,67 @@ final class Sign2Pay extends AbstractProvider
     }
 
     /**
+     * checkAccessTokenValid
+     * @param $token
+     * @return ResponseInterface
+     */
+    public function checkAccessTokenValid($token)
+    {
+        $request = $this->getAuthenticatedRequest(
+            'GET',
+            $this->getAccessTokenUrl([
+                'client_id' => $this->clientId,
+                'scope' => 'payment',
+            ]),
+            $token,
+            ['headers' => $this->getDefaultHeaders()]
+        );
+        $response = $this->getResponse($request);
+        return !empty($response['status']) && $response['status'] == 'ok';
+    }
+
+    /**
+     * getHeaders
+     * @param null $token
+     * @return array
+     */
+    public function getHeaders($token = null)
+    {
+        return array_merge(
+            $this->getDefaultHeaders(),
+            $this->getAuthorizationHeaders($token)
+        );
+    }
+
+
+    /**
+     * getDefaultHeaders
+     * @return array
+     */
+    protected function getDefaultHeaders()
+    {
+        return [
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'gzip, deflate'
+        ];
+    }
+
+
+    /**
+     * getAuthorizationParameters
+     * @param array $options
+     * @return array
+     */
+    protected function getAuthorizationParameters(array $options)
+    {
+        return array_merge([
+            'ref_id' => $this->getRandomFactory()->getLowStrengthGenerator()->generateString(32),
+            'amount' => 1234,
+        ], parent::getAuthorizationParameters($options));
+    }
+
+
+    /**
      * Returns the default scopes used by this provider.
      *
      * This should only be the scopes that are required to request the details
@@ -81,7 +149,7 @@ final class Sign2Pay extends AbstractProvider
      */
     protected function getDefaultScopes()
     {
-        return ['authenticate'];
+        return [static::SCOPE_PAYMENT]; // none of the others are accepted
     }
 
     /**
@@ -94,7 +162,7 @@ final class Sign2Pay extends AbstractProvider
     protected function checkResponse(ResponseInterface $response, $data)
     {
         if (!empty($data['error'])) {
-            throw Sign2PayException::fromData($data);
+            throw Sign2PayException::fromResponse($response, $data);
         }
     }
 
@@ -109,6 +177,21 @@ final class Sign2Pay extends AbstractProvider
     protected function createResourceOwner(array $response, AccessToken $token)
     {
         return null;
+    }
+
+    /**
+     * getAuthorizationHeaders
+     * @param null $token
+     * @return array
+     */
+    protected function getAuthorizationHeaders($token = null)
+    {
+        $headers = [
+            'Authorization' => empty($token) ?
+                'Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret) :
+                'Bearer ' . $token
+        ];
+        return $headers;
     }
 
     /**

@@ -1,0 +1,19 @@
+<?php
+return [
+    'log.enabled' => true,
+    'settings' => [
+        'displayErrorDetails' => true, // set to false in production
+        // Monolog settings
+        'logger' => [
+            'name' => 'slim-app',
+            'path' => __DIR__ . '/log/app.log',
+        ],
+        // Sign2Pay OAuth2 settings
+        'oauth2' => [
+            'clientId' => 'your-client-id',    // The client ID assigned to you by the provider
+            'clientSecret' => 'your-client-secret',   // The client password assigned to you by the provider
+            'redirectUri' => 'https://sign2pay.dev/callback',
+            'ref_id' => 'order-reference-id',
+        ],
+    ]
+];
