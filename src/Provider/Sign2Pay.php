@@ -132,10 +132,15 @@ final class Sign2Pay extends AbstractProvider
      */
     protected function getAuthorizationParameters(array $options)
     {
-        return array_merge([
-            'ref_id' => $this->getRandomFactory()->getLowStrengthGenerator()->generateString(32),
-            'amount' => 1234,
-        ], parent::getAuthorizationParameters($options));
+        $params = parent::getAuthorizationParameters($options);
+        if (isset($options['ref_id'])) {
+            $params['ref_id'] = $options['ref_id'];
+        }
+        if (isset($options['amount'])) {
+            $params['amount'] = $options['amount'];
+        }
+
+        return $params;
     }
 
 

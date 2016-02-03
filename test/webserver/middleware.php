@@ -56,7 +56,10 @@ $app->add(function(Request $request, Response $response, callable $next) use ($a
 
     // .. otherwise, redirect the user to Sign2Pay so we can get a new token
 
-    $authorizationUrl = $oauth->getAuthorizationUrl();
+    $authorizationUrl = $oauth->getAuthorizationUrl([
+        'ref_id' => 'xyz123',
+        'amount' => 1234,
+    ]);
 
     // Get the state generated and store it to the session.
     $_SESSION['oauth2state'] = $oauth->getState();
